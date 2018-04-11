@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-heapster
+  namespace: kube-system
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: my-heapster
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        task: kube-system
+        k8s-app: my-heapster
+    spec:
+      serviceAccountName: heapster
+      containers:
+      - name: my-heapster
+        image: k8s.gcr.io/heapster-amd64:v1.5.2
+        imagePullPolicy: IfNotPresent
+        command:
+        - /heapster
+        - --source=kubernetes.summary_api:''
+        - --sink=statsd:udp://cernan:5555?prefix=kubernetes.example.&protocolType=influxstatsd&numMetricsPerMsg=10&renameLabels=type:k8s_type,host_name:k8s_host_name&allowedLabels=container_name,namespace_name,type,host_name&labelStyle=lowerCamelCase
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    task: kube-system
+    # For use as a Cluster add-on (https://github.com/kubernetes/kubernetes/tree/master/cluster/addons)
+    # If you are NOT using this as an addon, you should comment out this line.
+    kubernetes.io/cluster-service: 'true'
+    kubernetes.io/name: Heapster
+  name: my-heapster
+  namespace: kube-system
+spec:
+  ports:
+  - port: 80
+    targetPort: 8082
+  selector:
+    k8s-app: my-heapster

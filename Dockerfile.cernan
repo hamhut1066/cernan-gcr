@@ -1,0 +1,6 @@
+FROM quay.io/postmates/cernan
+
+ADD cernan.toml /
+
+ENTRYPOINT ["cernan"]
+CMD ["--config", "/cernan.toml"]

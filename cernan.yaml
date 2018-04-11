@@ -1,0 +1,40 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: cernan
+  namespace: kube-system
+spec:
+  selector:
+    name: cernan
+    namespace: kube-system
+  ports:
+  - name: statsd
+    protocol: UDP
+    port: 8125
+    targetPort: 8125
+  - name: testing
+    protocol: UDP
+    port: 5555
+    targetPort: 5555
+  - name: testingtcp
+    protocol: TCP
+    port: 1024
+    targetPort: 1024
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cernan
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        task: kube-system
+        k8s-app: cernan
+    spec:
+      containers:
+      - name: cernan
+        image: moredhel/cernan:v2
+        imagePullPolicy: IfNotPresent
